@@ -2,8 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import sqlite3
-from spider import Spider
-from spider import Infomation
+from model.spider import Spider
+from model.spider import Infomation
 
 class Search():
     # ranklist为teacher的副本
