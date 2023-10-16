@@ -59,17 +59,21 @@ class Spider:
         self.teachers = []
 
     #从报文中获取学院，专业，名字，个人主页信息
-    def getinfo(self):
+    def getinfo(self, dbname = None):
         major = None
         college = None
         name = None
         page = None
         tid = 0
+        if dbname != None:
+            conn = sqlite3.connect(dbname)
         for ul in self.soup.find_all("td"):
 
             # 判断是不是描述学院信息的
             if ul.get("colspan")=="5":
                 college = ul.string
+                #if college == "物理学院":
+                #    break
                 print(college)
             
             # 判断是不是描述专业信息的
@@ -87,37 +91,101 @@ class Spider:
                     name = adviser.string
                     page = adviser.get("href")
 
-                    # 访问导师主页 
-                    # visitor访问量和 direction研究方向
-                    personal_page = Spider(page)
+                    # 如果有数据库就直接查询
+                    if dbname != None:
+                        c = conn.cursor()
+                        data = c.execute("SELECT visitor,directions FROM TEACHER WHERE page=?",(page,))
+                        for record in data : 
+                            visitor = record[0]
+                            directions = record[1]
+                    else :
+                        # 访问导师主页 
+                        # visitor访问量和 direction研究方向
+                        personal_page = Spider(page)
 
-                    # visitor访问量
-                    # # 从字符串中提取访问量数字
-                    # 有时候会乱码，乱码就跳过了
-                    visitor_num = personal_page.soup.find("td",width="365",align="left")
-                    try:
-                        visitor=int(visitor_num.text[8:])
-                    except ValueError:
-                        continue
-                    except AttributeError:
-                        continue
+                        # visitor访问量
+                        # # 从字符串中提取访问量数字
+                        # 有时候会乱码，乱码就跳过了
+                        visitor_num = personal_page.soup.find("td",width="365",align="left")
+                        try:
+                            visitor=int(visitor_num.text[8:])
+                        except ValueError:
+                            continue
+                        except AttributeError:
+                            continue
 
-                    # direction研究方向
-                    table_num = 0
-                    directions = ""
-                    for reserch in personal_page.soup.find_all("table",width="950"):
-                        table_num = table_num + 1
-                        #根据网页的框架，第5个table中是研究方向
-                        if table_num == 5 :
-                            for direction in reserch.find_all("div"):
-                                directions = directions + direction.string
-                    
+                        # direction研究方向
+                        table_num = 0
+                        directions = ""
+                        for reserch in personal_page.soup.find_all("table",width="950"):
+                            table_num = table_num + 1
+                            #根据网页的框架，第5个table中是研究方向
+                            if table_num == 5 :
+                                for direction in reserch.find_all("div"):
+                                    directions = directions + direction.string
+                        
                     # 将导师信息放入列表
                     info = Infomation(tid, college, major, name, page, visitor, directions)
                     self.teachers.append(info)
 
-if __name__ == "__main__":
+        if dbname != None :
+            conn.close()
 
+    #构建数据库 change为是否重建数据库
+    def initdb(self, dbname, change = False):
+        self.database = dbname
+        if change :
+            self.deletedb(dbname)
+        conn = sqlite3.connect(dbname)
+        print("Opened database successfully")
+        c = conn.cursor()
+        # 如数据库不存在，就创建数据库
+        if change or not c.execute("SELECT * FROM sqlite_master WHERE type='table' AND name='TEACHER'").fetchall():
+            print("Database is None")
+            self.getinfo()
+            c.execute('''CREATE TABLE TEACHER
+                (ID INTEGER PRIMARY KEY     AUTOINCREMENT,
+                PAGE            TEXT   NOT NULL,
+                VISITOR        INTEGER    NOT NULL,
+                DIRECTIONS     TEXT       NOT NULL);
+                ''')
+            
+            print("TEACHER Table Created!")
+            for info in self.teachers:
+                c.execute("INSERT INTO TEACHER (PAGE,VISITOR,DIRECTIONS) \
+                VALUES (?,?,?)",(info.page, info.visitor, info.direcions))
+        else:
+            print("Database is exist")
+            self.getinfo(dbname)
+        conn.commit()
+        conn.close()
+
+    # 删除数据库
+    def deletedb(self, dbname):
+        conn = sqlite3.connect(dbname)
+        print("Opened database successfully")
+        c = conn.cursor()
+        c.execute("DROP TABLE TEACHER")
+        conn.commit()
+        conn.close()
+        print("Table deleted successfully")
+    
+    # 展示数据库
+    def showdb(self, dbname):
+        conn = sqlite3.connect(dbname)
+        print("Opened database successfully")
+        c = conn.cursor()
+        data = c.execute("SELECT page,visitor,directions FROM TEACHER")
+        for info in data:
+            print("page = ", info[0])
+            print("visitor = ", info[1])
+            print("directions = ", info[2], "\n")
+        print("Operation done successfully")
+        conn.close()
+
+if __name__ == "__main__":
     content = Spider('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023')
-    content.getinfo()
+    content.initdb('../database/teacher.db')
+    #content.showdb('../database/teacher.db')
+
 
