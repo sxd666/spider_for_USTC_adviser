@@ -28,7 +28,7 @@ class Infomation:
         self.name = name
         self.page = page
         self.visitor = visitor
-        self.direcions = directions
+        self.directions = directions
     
     # 查询时，与老师信息的匹配度
     # 只要看college，major，name，directions
@@ -39,7 +39,7 @@ class Infomation:
         max_result = max(max_result, match_sub(self.college, request_info))
         max_result = max(max_result, match_sub(self.major, request_info))
         max_result = max(max_result, match_sub(self.name, request_info))
-        max_result = max(max_result, match_sub(self.direcions, request_info))
+        max_result = max(max_result, match_sub(self.directions, request_info))
         return max_result
     
 
@@ -65,10 +65,11 @@ class Spider:
         name = None
         page = None
         tid = 0
+        self.teachers = []
+        self.features = {}
         if dbname != None:
             conn = sqlite3.connect(dbname)
         for ul in self.soup.find_all("td"):
-
             # 判断是不是描述学院信息的
             if ul.get("colspan")=="5":
                 college = ul.string
@@ -87,9 +88,13 @@ class Spider:
 
                 # 那么逐条查询导师信息
                 for adviser in ul.find_all('a'):
-                    tid=tid+1
                     name = adviser.string
                     page = adviser.get("href")
+                    # 用网页链接去重
+                    if self.features.get(page):
+                        continue
+                    tid = tid + 1
+                    self.features[str(page)] = tid
 
                     # 如果有数据库就直接查询
                     if dbname != None:
