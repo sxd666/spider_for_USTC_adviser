@@ -10,7 +10,7 @@ def match_sub(a,b):
     max_compared = [0] * (length_b + 1)
     for i in range(length_a):
         for j in range(length_b, 0,-1):
-            if b[j-1] == a[i-1]:
+            if b[j-1] == a[i]:
                 max_compared[j] = max_compared[j-1] + 1
         
         for j in range(length_b):
@@ -68,7 +68,7 @@ class Spider:
         self.teachers = []
         self.features = {}
         if dbname != None:
-            conn = sqlite3.connect(dbname)
+            conn = sqlite3.connect(dbname + '.db')
         for ul in self.soup.find_all("td"):
             # 判断是不是描述学院信息的
             if ul.get("colspan")=="5":
@@ -127,7 +127,7 @@ class Spider:
                             #根据网页的框架，第5个table中是研究方向
                             if table_num == 5 :
                                 for direction in reserch.find_all("div"):
-                                    directions = directions + direction.string
+                                    directions = directions + " \n" + direction.string
                         
                     # 将导师信息放入列表
                     info = Infomation(tid, college, major, name, page, visitor, directions)
@@ -137,11 +137,18 @@ class Spider:
             conn.close()
 
     #构建数据库 change为是否重建数据库
+    #在dbname.txt中存储时间，每隔一天更新一次数据库
     def initdb(self, dbname, change = False):
         self.database = dbname
+        #fp = open(dbname + '.txt', 'w+')
+        #lasttime = int(fp.read())
+        #nowtime = time.time()
+        #if nowtime - lasttime > 86400 :
+            #change = True
         if change :
             self.deletedb(dbname)
-        conn = sqlite3.connect(dbname)
+            #fp.write(nowtime)
+        conn = sqlite3.connect(dbname + '.db')
         print("Opened database successfully")
         c = conn.cursor()
         # 如数据库不存在，就创建数据库
@@ -167,7 +174,7 @@ class Spider:
 
     # 删除数据库
     def deletedb(self, dbname):
-        conn = sqlite3.connect(dbname)
+        conn = sqlite3.connect(dbname + '.db')
         print("Opened database successfully")
         c = conn.cursor()
         c.execute("DROP TABLE TEACHER")
@@ -177,7 +184,7 @@ class Spider:
     
     # 展示数据库
     def showdb(self, dbname):
-        conn = sqlite3.connect(dbname)
+        conn = sqlite3.connect(dbname + '.db')
         print("Opened database successfully")
         c = conn.cursor()
         data = c.execute("SELECT page,visitor,directions FROM TEACHER")
@@ -190,7 +197,7 @@ class Spider:
 
 if __name__ == "__main__":
     content = Spider('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023')
-    content.initdb('../database/teacher.db')
+    content.initdb('../database/teacher')
     #content.showdb('../database/teacher.db')
 
 

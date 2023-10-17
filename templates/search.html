@@ -80,6 +80,15 @@
                 <td>主页访问量</td>
                 <td>研究方向</td>
             </tr>
+            {% for teacher in teacherlist %}
+            <tr>
+                <td>{{ teacher.college }}</td>
+                <td>{{ teacher.major }}</td>
+                <td><a href = '{{ teacher.page }}'>{{ teacher.name }}</a></td>
+                <td>{{ teacher.visitor }}</td>
+                <td>{{ teacher.directions }}</td>
+            </tr>
+            {% endfor %}
         </table>
     </section><!-- End Counts Section -->
 

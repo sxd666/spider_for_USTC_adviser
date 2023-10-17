@@ -24,7 +24,7 @@ class Search():
         return
         
 if __name__ == "__main__":
-    content = Search('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', '../database/teacher.db')
+    content = Search('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', '../database/teacher')
     content.rank('人工智能')
     cs = 0
     for info in content.ranklist:

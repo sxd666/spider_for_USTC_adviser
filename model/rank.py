@@ -18,11 +18,11 @@ class Rank():
         
     # info_type 为类型 0-默认 1-学院 2-专业 3-名字 5-访问量
     def rank(self, info_type):
-        self.ranklist.sort(key=lambda x:-x[info_type])
+        self.ranklist.sort(key=lambda x:x[info_type],reverse=True)
         return
         
 if __name__ == "__main__":
-    content = Rank('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', '../database/teacher.db')
+    content = Rank('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', '../database/teacher')
     content.rank(5)
     cs = 0
     for info in content.ranklist:

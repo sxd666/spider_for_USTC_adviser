@@ -132,6 +132,15 @@
                 <td>主页访问量</td>
                 <td>研究方向</td>
             </tr>
+            {% for rank in ranklist %}
+            <tr>
+                <td>{{ rank[1] }}</td>
+                <td>{{ rank[2] }}</td>
+                <td><a href = '{{ rank[4] }}'>{{ rank[3] }}</a></td>
+                <td>{{ rank[5] }}</td>
+                <td>{{ rank[6] }}</td>
+            </tr>
+            {% endfor %}
         </table>
 
         

@@ -11,29 +11,53 @@ def index():
 @app.route('/index')
 def home():
     return index()
-
-@app.route('/search')
+#搜索匹配度前100的信息，并输出
+@app.route('/search',methods = ['GET', 'POST'])
 def search():
-    # get the keyword from the POST
     if request.method == 'POST':
-        return render_template('search.html')
+        message = request.form.get('search')
+        result = Search('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', 'database/teacher')
+        result.rank(message)
+        ranklist = []
+        number = 0
+        for info in result.ranklist:
+            ranklist.append(info[2])
+            number = number + 1
+            if number == 100 : 
+                break
+        return render_template('search.html', teacherlist = ranklist)
     else:
         return render_template('search.html')
+#按默认排序
 @app.route('/rank_tid')
 def rank_tid():
-    return render_template('rank.html')
+    result = Rank('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', 'database/teacher')
+    result.rank(0)
+    return render_template('rank.html', ranklist = result.ranklist)
+#按学院排序
 @app.route('/rank_college')
 def rank_college():
-    return render_template('rank.html')
+    result = Rank('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', 'database/teacher')
+    result.rank(1)
+    return render_template('rank.html', ranklist = result.ranklist)
+#按专业排序
 @app.route('/rank_major')
 def rank_major():
-    return render_template('rank.html')
+    result = Rank('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', 'database/teacher')
+    result.rank(2)
+    return render_template('rank.html', ranklist = result.ranklist)
+#按名字排序
 @app.route('/rank_name')
 def rank_name():
-    return render_template('rank.html')
+    result = Rank('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', 'database/teacher')
+    result.rank(3)
+    return render_template('rank.html', ranklist = result.ranklist)
+#按访问量排序
 @app.route('/rank_visitor')
 def rank_visitor():
-    return render_template('rank.html')
+    result = Rank('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023', 'database/teacher')
+    result.rank(5)
+    return render_template('rank.html', ranklist = result.ranklist)
 
 if __name__ == '__main__':
     app.run(port=5009,debug=True) 
