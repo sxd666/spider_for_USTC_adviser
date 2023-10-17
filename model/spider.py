@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import sqlite3
+import time
 
 # 字符串子序列匹配
 def match_sub(a,b):
@@ -137,17 +138,26 @@ class Spider:
             conn.close()
 
     #构建数据库 change为是否重建数据库
-    #在dbname.txt中存储时间，每隔一天更新一次数据库
     def initdb(self, dbname, change = False):
         self.database = dbname
-        #fp = open(dbname + '.txt', 'w+')
-        #lasttime = int(fp.read())
-        #nowtime = time.time()
-        #if nowtime - lasttime > 86400 :
-            #change = True
+
+        #在dbname.txt中存储时间，实现每隔一天更新一次数据库
+        fp = open(dbname + '.txt', 'r+')
+        nowtime = float(time.time())
+        lasttime = fp.read()
+        if lasttime == "":
+            change = True
+        else :
+            lasttime = float(lasttime)
+        print("lasttime: ",lasttime)
+        print("nowtime: ",nowtime)
+        if change == False and nowtime - lasttime > 86400 :
+            change = True
+        
         if change :
             self.deletedb(dbname)
-            #fp.write(nowtime)
+            fp.write(str(nowtime))
+        fp.close()
         conn = sqlite3.connect(dbname + '.db')
         print("Opened database successfully")
         c = conn.cursor()
@@ -165,7 +175,7 @@ class Spider:
             print("TEACHER Table Created!")
             for info in self.teachers:
                 c.execute("INSERT INTO TEACHER (PAGE,VISITOR,DIRECTIONS) \
-                VALUES (?,?,?)",(info.page, info.visitor, info.direcions))
+                VALUES (?,?,?)",(info.page, info.visitor, info.directions))
         else:
             print("Database is exist")
             self.getinfo(dbname)
@@ -177,7 +187,8 @@ class Spider:
         conn = sqlite3.connect(dbname + '.db')
         print("Opened database successfully")
         c = conn.cursor()
-        c.execute("DROP TABLE TEACHER")
+        if c.execute("SELECT * FROM sqlite_master WHERE type='table' AND name='TEACHER'").fetchall():
+            c.execute("DROP TABLE TEACHER")
         conn.commit()
         conn.close()
         print("Table deleted successfully")
