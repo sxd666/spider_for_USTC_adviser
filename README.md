@@ -7,5 +7,6 @@
 ## 项目运行
 终端运行：
 ```
+python model/spider.py
 python main.py
 ```

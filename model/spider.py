@@ -208,7 +208,7 @@ class Spider:
 
 if __name__ == "__main__":
     content = Spider('https://dslx.ustc.edu.cn/?menu=expertlist&year=2023')
-    content.initdb('../database/teacher')
+    content.initdb('database/teacher')
     #content.showdb('../database/teacher.db')
 
 
